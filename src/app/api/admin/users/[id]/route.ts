@@ -6,11 +6,12 @@ const VALID_ROLES = ["OWNER", "ADMIN", "USER"] as const;
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await requireAdmin();
   if (!admin.ok) return admin.res;
 
+  const { id } = await params;
   const body = await req.json().catch(() => null) as Record<string, unknown> | null;
   if (!body) return NextResponse.json({ ok: false, error: { code: "BAD_REQUEST", message: "Invalid body" } }, { status: 400 });
 
@@ -25,7 +26,7 @@ export async function PATCH(
   }
 
   const updated = await prisma.user.update({
-    where: { id: params.id },
+    where: { id },
     data: { role: role as typeof VALID_ROLES[number] },
     select: { id: true, nickname: true, email: true, role: true }
   });
@@ -35,13 +36,15 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await requireAdmin();
   if (!admin.ok) return admin.res;
 
+  const { id } = await params;
+
   await prisma.user.update({
-    where: { id: params.id },
+    where: { id },
     data: { status: "INACTIVE", deletedAt: new Date() }
   });
 

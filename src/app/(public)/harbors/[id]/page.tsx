@@ -17,11 +17,11 @@ import {
 } from "@/lib/queries";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function HarborDetailPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
   const harbor = await getHarborById(id);
   if (!harbor) notFound();
 

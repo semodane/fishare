@@ -7,11 +7,11 @@ import { getHarborById } from "@/lib/queries/harbor";
 import { getReviewsByTarget } from "@/lib/queries/review";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function BoatDetailPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
   const boat = await getBoatById(id);
   if (!boat) notFound();
 

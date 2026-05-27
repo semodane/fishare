@@ -12,11 +12,11 @@ import { getHarborById } from "@/lib/queries/harbor";
 import { getReviewsByTarget } from "@/lib/queries/review";
 
 type PageProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function PlaceDetailPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
   const place = await getPlaceById(id);
   if (!place) notFound();
 

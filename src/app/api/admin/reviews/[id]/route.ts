@@ -4,13 +4,15 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await requireAdmin();
   if (!admin.ok) return admin.res;
 
+  const { id } = await params;
+
   await prisma.review.update({
-    where: { id: params.id },
+    where: { id },
     data: { status: "INACTIVE", deletedAt: new Date() }
   });
 
