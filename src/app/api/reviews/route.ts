@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import type { Session } from "next-auth";
 import { prisma } from "@/lib/db";
 import type { Prisma, ReviewTargetType as DbReviewTargetType } from "@prisma/client";
 import type { CreateReviewInput, Review, ReviewTagKey, ReviewTargetType } from "@/types/review";
@@ -30,7 +31,7 @@ function fail(code: ApiErrorCode, message: string, status: number) {
   return NextResponse.json({ ok: false, error: { code, message } }, { status });
 }
 
-function getUserId(session: Awaited<ReturnType<typeof auth>>): string | null {
+function getUserId(session: Session | null): string | null {
   const id = session?.user && (session.user as { id?: string }).id;
   return id ?? null;
 }

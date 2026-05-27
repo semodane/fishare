@@ -147,6 +147,7 @@ export function ReviewWriteForm({
       return;
     }
     if (submitting) return;
+    if (!target) return;
     setSubmitting(true);
     try {
       const tags =
