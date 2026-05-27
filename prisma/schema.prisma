@@ -1,0 +1,395 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum UserRole {
+  OWNER   // 소유자 (최고 권한)
+  ADMIN   // 관리자
+  USER    // 일반 회원
+}
+
+enum ReportReason {
+  SPAM
+  ABUSE
+  FALSE_INFO
+  OTHER
+}
+
+enum SuggestionTargetType {
+  harbor
+  boat
+  place
+}
+
+enum PlaceCategory {
+  tackle_shop
+  early_restaurant
+  fish_cleaning
+  cooking_restaurant
+}
+
+enum ReviewTargetType {
+  harbor
+  boat
+  place
+}
+
+enum SavedTargetType {
+  harbor
+  boat
+  place
+}
+
+// -----------------------------
+// Auth.js (NextAuth) compatible
+// -----------------------------
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String?  @unique
+  emailVerified DateTime?
+  image         String?
+  nickname      String?  // 사용자가 직접 설정하는 닉네임 (최초 가입 시 name으로 자동 설정)
+  role          UserRole @default(USER) // 권한 등급
+
+  // optional: social identity convenience (not used by adapter by default)
+  socialProvider String?
+  socialId       String?
+
+  accounts Account[]
+  sessions Session[]
+
+  reviews     Review[]
+  reviewReports ReviewReport[]
+  savedItems  SavedItem[]
+  suggestions ContentSuggestion[]
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([deletedAt])
+  @@unique([socialProvider, socialId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// -----------------------------
+// Fishare domain (Harbor-centric)
+// -----------------------------
+model Harbor {
+  id          String @id @default(cuid())
+  name        String
+  region      String
+  areaLabel   String
+  description String
+  address     String
+  lat         Float?
+  lng         Float?
+  tags        String[] @default([])
+  imageUrls   Json? // e.g., ["https://..."]  (MVP: optional)
+  mainSpecies Json? // e.g., ["광어","우럭"]  (MVP: optional)
+
+  // KHOA 조석예보 관측소 코드 (예: DT_0018, SO_1261)
+  obsCode     String?
+
+  // cached stats
+  reviewAvg   Float @default(0)
+  reviewCount Int   @default(0)
+
+  boats   Boat[]
+  places  Place[]
+  tides   TideInfo[]
+  reviews Review[]
+  suggestions ContentSuggestion[]
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([region])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model Boat {
+  id                  String @id @default(cuid())
+  harborId            String
+  name                String
+  operatorName        String
+  capacity            Int
+  priceLabel          String
+  departureHarborName String
+  tags                String[] @default([])
+  contact             String?  // 연락처 (전화번호 등)
+  bookingUrl          String?  // 예약 페이지 URL
+  imageUrl            String?
+  imageUrls           Json? // e.g., ["https://..."]
+  mainSpecies         Json? // e.g., ["갈치","열기"]
+  detailScores        Json? // e.g., { condition: 4, captainKindness: 5, ... } (cached/summary 가능)
+  features            Json? // e.g., { equipmentRental: true, lifeJacketProvided: true }
+
+  // cached stats
+  reviewAvg   Float @default(0)
+  reviewCount Int   @default(0)
+
+  harbor Harbor @relation(fields: [harborId], references: [id], onDelete: Restrict)
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([harborId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model Place {
+  id        String @id @default(cuid())
+  harborId  String
+  name      String
+  category  PlaceCategory
+  address   String
+  note      String?
+  phone     String?
+  openHours String?
+  lat       Float?
+  lng       Float?
+  imageUrls Json? // e.g., ["https://..."]
+  detail    Json? // category별 특화 정보 등 (e.g., { bait: true, rental: true })
+
+  // cached stats
+  reviewAvg   Float @default(0)
+  reviewCount Int   @default(0)
+
+  harbor Harbor @relation(fields: [harborId], references: [id], onDelete: Restrict)
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([harborId])
+  @@index([category])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model TideInfo {
+  id          String @id @default(cuid())
+  harborId    String
+  date        DateTime
+  timezone    String
+  sourceLabel String
+  summary     String
+  tides       Json // [{ time, type, heightCm }]
+
+  harbor Harbor @relation(fields: [harborId], references: [id], onDelete: Restrict)
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([harborId, date])
+  @@index([harborId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model Review {
+  id         String @id @default(cuid())
+  authorId   String
+  harborId   String // Harbor 중심 탐색/집계를 위한 정규화 키
+  targetType ReviewTargetType
+  targetId   String
+  // Polymorphic target:
+  // - targetType+targetId는 (harbor|boat|place) 중 하나를 가리킵니다.
+  // - Prisma는 단일 FK로 polymorphic relation을 직접 걸 수 없어서,
+  //   여기서는 targetType/targetId를 "문자열 참조"로 유지합니다.
+  // - 대신 harborId를 항상 함께 저장해 "Harbor 중심" 리스트/집계/필터를 쉽게 합니다.
+  rating     Int
+  title      String
+  content    String
+  visitedAt  DateTime
+  images     String[] @default([])
+  tags       Json? // e.g., ["beginner_friendly","good_value"] (키/라벨은 ReviewTagDefinition로 확장 가능)
+  detailScores Json? // e.g., { accessibility: 4, convenience: 4, overall: 5 } 등
+  wouldRevisit Boolean? // 재이용 의사
+
+  author User   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  harbor Harbor @relation(fields: [harborId], references: [id], onDelete: Restrict)
+
+  tagMaps ReviewTagMap[]
+  reports ReviewReport[]
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([harborId, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+  @@index([authorId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model ReviewTagDefinition {
+  id        String @id @default(cuid())
+  key       String @unique
+  label     String
+  groupKey  String?
+  order     Int @default(0)
+
+  maps ReviewTagMap[]
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groupKey, order])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model ReviewTagMap {
+  id     String @id @default(cuid())
+  reviewId String
+  tagId   String
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  tag    ReviewTagDefinition @relation(fields: [tagId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, tagId])
+  @@index([tagId])
+}
+
+model SavedItem {
+  id        String @id @default(cuid())
+  userId    String
+  targetType SavedTargetType
+  targetId  String
+  harborId  String?
+  // Polymorphic target:
+  // - targetType+targetId는 (harbor|boat|place) 중 하나를 가리킵니다.
+  // - Prisma FK로 묶지 않고, 앱 레이어에서 targetType에 따라 조회합니다.
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([harborId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+// Optional: Review 신고
+model ReviewReport {
+  id        String @id @default(cuid())
+  reviewId  String
+  reporterId String?
+  reason    ReportReason
+  detail    String?
+
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reporter User?  @relation(fields: [reporterId], references: [id], onDelete: SetNull)
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([reviewId, createdAt(sort: Desc)])
+  @@index([reporterId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+// Optional: 콘텐츠 제안(항구/선박/장소 추가/수정 요청 등)
+model ContentSuggestion {
+  id         String @id @default(cuid())
+  authorId   String?
+  harborId   String?
+
+  targetType SuggestionTargetType
+  targetId   String? // 기존 대상 수정 제안이면 채움, 신규 제안이면 null 가능
+  payload    Json    // 제안 내용(필드/메모/링크/이미지 등)
+
+  note       String?
+
+  author User?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  harbor Harbor? @relation(fields: [harborId], references: [id], onDelete: SetNull)
+
+  status    RecordStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([harborId])
+  @@index([authorId])
+  @@index([targetType])
+  @@index([status])
+  @@index([deletedAt])
+}
+

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Mobile-first baseline (390px target) */
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* Prevent iOS bounce background showing weird colors */
+body {
+  background: rgb(250 250 250);
+}
+
