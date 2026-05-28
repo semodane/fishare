@@ -19,7 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     }
   },
-  callbacks: {
+    callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user, trigger, session }) {
       const userId = user?.id ?? token.sub;
@@ -43,6 +43,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (trigger === "update") {
         if (session?.nickname !== undefined) token.nickname = session.nickname as string;
       }
+      // JWT 크기 최소화 - OAuth 프로바이더가 주입한 불필요한 대용량 필드 제거
+      delete token.picture;
+      delete token.image;
       return token;
     }
   }
