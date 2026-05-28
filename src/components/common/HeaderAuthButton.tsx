@@ -27,8 +27,7 @@ export function HeaderAuthButton() {
 
   if (status === "authenticated") {
     const nickname = (session.user as { nickname?: string }).nickname ?? session.user.name;
-    // dbImage: 사용자가 직접 설정한 이미지 (우선), image: OAuth 기본 이미지
-    const image = (session.user as { dbImage?: string }).dbImage ?? (session.user as { image?: string | null }).image;
+    const image = (session.user as { image?: string | null }).image;
     return (
       <Link
         href="/my"

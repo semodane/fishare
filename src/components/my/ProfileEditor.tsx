@@ -134,7 +134,7 @@ export function ProfileEditor({ initialNickname, initialImage }: Props) {
       });
       const json = await res.json() as { ok: boolean; error?: { message: string } };
       if (!json.ok) { setError(json.error?.message ?? "저장에 실패했습니다"); return; }
-      await update({ nickname: trimmedNick, image: imageBase64 !== undefined ? (imageBase64 ?? null) : undefined });
+      await update({ nickname: trimmedNick });
       router.refresh();
       setEditing(false);
       setImageBase64(undefined);

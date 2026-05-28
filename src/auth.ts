@@ -32,7 +32,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (user?.id) token.id = user.id;
           token.nickname = dbUser?.nickname ?? user?.name ?? (token.nickname as string | undefined);
-          token.dbImage = dbUser?.image ?? (token.dbImage as string | undefined);
           token.role = dbUser?.role ?? "USER";
         } catch {
           // Edge 런타임에서는 Prisma 사용 불가 → 기존 토큰 값 유지
@@ -43,7 +42,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // client에서 update() 호출 시 세션 즉시 반영
       if (trigger === "update") {
         if (session?.nickname !== undefined) token.nickname = session.nickname as string;
-        if ("image" in (session ?? {})) token.dbImage = (session as Record<string, unknown>).image as string | undefined;
       }
       return token;
     }

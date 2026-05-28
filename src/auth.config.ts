@@ -39,8 +39,6 @@ export const authConfig: NextAuthConfig = {
         (session.user as { id?: string }).id = token.sub;
         (session.user as { nickname?: string }).nickname =
           (token.nickname as string | undefined) ?? undefined;
-        (session.user as { dbImage?: string }).dbImage =
-          (token.dbImage as string | undefined) ?? undefined;
         (session.user as { role?: UserRole }).role =
           ((token.role as string | undefined) ?? "USER") as UserRole;
       }
