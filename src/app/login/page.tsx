@@ -76,18 +76,7 @@ function LoginContent() {
               : undefined
         }
       />
-      <ProviderButton
-        label="카카오"
-        onClick={() => void signIn("kakao", { callbackUrl })}
-        disabled={providerKeys === null ? true : !kakaoReady}
-        hint={
-          providerKeys === null
-            ? "로그인 제공자를 확인 중…"
-            : !kakaoReady
-              ? "서버 환경 변수 설정 후 활성화됩니다."
-              : undefined
-        }
-      />
+      {/* 카카오 로그인 임시 비활성화 */}
     </div>
   );
 }
