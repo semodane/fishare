@@ -48,11 +48,14 @@ export function HomePopularBoatsSection({ boats }: { boats: Boat[] }) {
                         {b.name}
                       </div>
                       <div className="mt-0.5 text-xs text-neutral-600">
-                        {b.departureHarborName} · {b.operatorName}
+                        {[
+                          b.departureHarborName,
+                          b.operatorName && b.operatorName !== "-" ? b.operatorName : null
+                        ].filter(Boolean).join(" · ")}
                       </div>
                     </div>
                     <div className="shrink-0 text-xs font-semibold text-neutral-900">
-                      {b.priceLabel}
+                      {b.priceLabel && b.priceLabel !== "-" ? b.priceLabel : ""}
                     </div>
                   </div>
 
