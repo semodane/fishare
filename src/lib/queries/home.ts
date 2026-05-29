@@ -15,7 +15,8 @@ export async function getHomeData(): Promise<HomeMockData> {
     select: { harborId: true, id: true, targetType: true, targetId: true,
               rating: true, title: true, content: true, visitedAt: true,
               createdAt: true, authorId: true, images: true, tags: true,
-              wouldRevisit: true, detailScores: true }
+              wouldRevisit: true, detailScores: true,
+              author: { select: { nickname: true } } }
   });
 
   // 항구별 최근 리뷰 2개씩 모으기 (출현 순서 = 최근 활동 순)
@@ -58,7 +59,7 @@ export async function getHomeData(): Promise<HomeMockData> {
 
   const featuredHarbors: FeaturedHarborItem[] = featuredHarborsRaw.map((h) => ({
     ...mapHarbor(h),
-    recentReviews: (reviewsByHarbor.get(h.id) ?? []).map(mapReview)
+    recentReviews: (reviewsByHarbor.get(h.id) ?? []).map((r) => mapReview({ ...r, authorNickname: r.author?.nickname }))
   }));
 
   const [popularBoatsRaw, recentReviewsRaw, nearbyPlacesRaw] = await Promise.all([
@@ -70,7 +71,8 @@ export async function getHomeData(): Promise<HomeMockData> {
     prisma.review.findMany({
       where: { status: "ACTIVE", deletedAt: null },
       orderBy: [{ createdAt: "desc" }],
-      take: 6
+      take: 6,
+      include: { author: { select: { nickname: true } } }
     }),
     prisma.place.findMany({
       where: { status: "ACTIVE", deletedAt: null },
@@ -82,7 +84,7 @@ export async function getHomeData(): Promise<HomeMockData> {
   return {
     featuredHarbors,
     popularBoats: popularBoatsRaw.map(mapBoat),
-    recentReviews: recentReviewsRaw.map(mapReview),
+    recentReviews: recentReviewsRaw.map((r) => mapReview({ ...r, authorNickname: r.author?.nickname })),
     nearbyPlaces: nearbyPlacesRaw.map(mapPlace)
   };
 }

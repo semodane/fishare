@@ -69,6 +69,11 @@ export function HomeFeaturedHarborsSection({
                       {h.recentReviews.map((r) => (
                         <div key={r.id} className="space-y-0.5">
                           <div className="flex items-center gap-1.5">
+                            {r.authorNickname && (
+                              <span className="text-[10px] font-medium text-neutral-600">
+                                {r.authorNickname.length > 5 ? r.authorNickname.slice(0, 5) + "…" : r.authorNickname}
+                              </span>
+                            )}
                             <span className="text-[10px] font-medium text-amber-500">
                               {"★".repeat(r.rating)}
                               <span className="text-neutral-300">

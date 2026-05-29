@@ -59,6 +59,11 @@ export function HomeRecentReviewsSection({ reviews }: { reviews: Review[] }) {
                     <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-700">
                       {targetLabel(r)}
                     </span>
+                    {r.authorNickname && (
+                      <span className="text-xs font-medium text-neutral-700">
+                        {r.authorNickname.length > 5 ? r.authorNickname.slice(0, 5) + "…" : r.authorNickname}
+                      </span>
+                    )}
                     <Stars rating={r.rating} />
                     <span className="text-xs text-neutral-500">
                       {r.visitedAt}
