@@ -118,7 +118,14 @@ export function BoatReviewsSection({ reviews }: { reviews: Review[] }) {
             return (
               <CardBase key={r.id} className="p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <Stars rating={r.rating} />
+                  <div className="flex items-center gap-1.5">
+                    {r.authorNickname && (
+                      <span className="text-xs font-medium text-neutral-700">
+                        {r.authorNickname.length > 5 ? r.authorNickname.slice(0, 5) + "…" : r.authorNickname}
+                      </span>
+                    )}
+                    <Stars rating={r.rating} />
+                  </div>
                   <span className="text-xs text-neutral-500">{r.visitedAt}</span>
                 </div>
                 <div className="mt-2 text-sm font-semibold">{r.title}</div>

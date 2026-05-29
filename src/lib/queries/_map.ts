@@ -122,6 +122,7 @@ export function mapTideInfo(row: {
 export function mapReview(row: {
   id: string;
   authorId: string;
+  authorNickname?: string | null;
   targetType: string;
   targetId: string;
   harborId: string;
@@ -138,6 +139,7 @@ export function mapReview(row: {
   return {
     id: row.id,
     authorId: row.authorId,
+    authorNickname: row.authorNickname ?? undefined,
     targetType: row.targetType as ReviewTargetType,
     targetId: row.targetId,
     harborId: row.harborId,

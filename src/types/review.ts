@@ -35,6 +35,7 @@ export type PlaceDetailScores = {
 export type Review = {
   id: string;
   authorId: string;
+  authorNickname?: string;
   targetType: ReviewTargetType;
   targetId: string;
   harborId: string; // 하버 중심으로 묶기 위한 정규화 키

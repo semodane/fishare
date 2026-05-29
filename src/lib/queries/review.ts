@@ -8,9 +8,10 @@ export async function getReviewsByTarget(
 ): Promise<Review[]> {
   const rows = await prisma.review.findMany({
     where: { targetType, targetId, status: "ACTIVE", deletedAt: null },
-    orderBy: [{ createdAt: "desc" }]
+    orderBy: [{ createdAt: "desc" }],
+    include: { author: { select: { nickname: true } } }
   });
-  return rows.map(mapReview);
+  return rows.map((r) => mapReview({ ...r, authorNickname: r.author?.nickname }));
 }
 
 export async function getReviewsByUser(userId: string): Promise<Review[]> {
