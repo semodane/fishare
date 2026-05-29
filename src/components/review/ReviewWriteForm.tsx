@@ -136,6 +136,7 @@ export function ReviewWriteForm({
     if (title.trim().length < 2) return "한줄평을 2자 이상 입력해주세요.";
     if (content.trim().length < 10) return "상세 코멘트를 10자 이상 입력해주세요.";
     if (!/^\d{4}-\d{2}-\d{2}$/.test(visitedAt)) return "방문일 형식이 올바르지 않아요.";
+    if (visitedAt > todayYYYYMMDD()) return "방문일은 오늘 이후 날짜로 설정할 수 없어요.";
     return null;
   }
 
@@ -474,6 +475,7 @@ export function ReviewWriteForm({
           <input
             type="date"
             value={visitedAt}
+            max={todayYYYYMMDD()}
             onChange={(e) => setVisitedAt(e.target.value)}
             className="h-10 w-full rounded-xl border border-black/10 bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
           />
