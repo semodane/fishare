@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { MobilePageLayout } from "@/components/common/MobilePageLayout";
 import { HomeFeaturedHarborsSection } from "@/components/home/HomeFeaturedHarborsSection";
 import { HomeNearbyPlacesSection } from "@/components/home/HomeNearbyPlacesSection";

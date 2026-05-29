@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 import { MobilePageLayout } from "@/components/common/MobilePageLayout";
 import { CardBase } from "@/components/common/CardBase";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { MobilePageLayout } from "@/components/common/MobilePageLayout";
 import { HarborListClient } from "@/components/harbor";
 import { getHarbors } from "@/lib/queries/harbor";
